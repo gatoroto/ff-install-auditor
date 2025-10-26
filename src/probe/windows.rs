@@ -1,14 +1,18 @@
+use crate::model::{DefaultBrowser, Install, Report};
 use anyhow::{Context, Result};
-use winreg::enums::*;
 use winreg::RegKey;
-use crate::model::{Report, DefaultBrowser, Install};
+use winreg::enums::*;
 
 pub fn collect(debug: bool) -> Result<Report> {
     let platform = "windows".to_string();
     let installs = find_installs(debug)?;
     let default_browser = detect_default(debug)?;
 
-    Ok(Report { platform, default_browser, installs })
+    Ok(Report {
+        platform,
+        default_browser,
+        installs,
+    })
 }
 
 fn find_installs(_debug: bool) -> Result<Vec<Install>> {
@@ -41,19 +45,24 @@ fn find_installs(_debug: bool) -> Result<Vec<Install>> {
 fn detect_default(_debug: bool) -> Result<DefaultBrowser> {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let prog = |assoc: &str| -> Option<String> {
-        hkcu.open_subkey(format!(r"SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\{}\UserChoice", assoc))
-            .ok()
-            .and_then(|k| k.get_value::<String, _>("ProgId").ok())
+        hkcu.open_subkey(format!(
+            r"SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\{}\UserChoice",
+            assoc
+        ))
+        .ok()
+        .and_then(|k| k.get_value::<String, _>("ProgId").ok())
     };
     let http = prog("http");
     let https = prog("https");
 
-    let is_ff = |p: &Option<String>| {
-        p.as_ref().map_or(false, |s| s.starts_with("FirefoxURL"))
-    };
+    let is_ff = |p: &Option<String>| p.as_ref().map_or(false, |s| s.starts_with("FirefoxURL"));
 
     Ok(DefaultBrowser {
-        name: if is_ff(&http) && is_ff(&https) { "Firefox".into() } else { "Other".into() },
+        name: if is_ff(&http) && is_ff(&https) {
+            "Firefox".into()
+        } else {
+            "Other".into()
+        },
         is_default: is_ff(&http) && is_ff(&https),
         evidence: "registry".into(),
     })
@@ -61,9 +70,15 @@ fn detect_default(_debug: bool) -> Result<DefaultBrowser> {
 
 fn classify_channel(path: &str, ver: &str) -> String {
     let p = path.to_ascii_lowercase();
-    if p.contains("nightly") { "nightly".into() }
-    else if p.contains("esr") { "esr".into() }
-    else if p.contains("beta") { "beta".into() }
-    else if ver.contains("esr") { "esr".into() }
-    else { "release".into() }
+    if p.contains("nightly") {
+        "nightly".into()
+    } else if p.contains("esr") {
+        "esr".into()
+    } else if p.contains("beta") {
+        "beta".into()
+    } else if ver.contains("esr") {
+        "esr".into()
+    } else {
+        "release".into()
+    }
 }

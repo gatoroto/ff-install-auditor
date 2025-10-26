@@ -7,9 +7,12 @@ use model::Report;
 
 #[derive(Parser)]
 struct Args {
-    #[arg(long)] pretty: bool,
-    #[arg(long)] machine: bool,
-    #[arg(long)] debug: bool,
+    #[arg(long)]
+    pretty: bool,
+    #[arg(long)]
+    machine: bool,
+    #[arg(long)]
+    debug: bool,
 }
 
 fn main() -> Result<()> {
@@ -25,8 +28,12 @@ fn main() -> Result<()> {
 
     if args.machine {
         // 0 ok, 1 none found, 2 not default, 3 error
-        if report.installs.is_empty() { std::process::exit(1); }
-        if !report.default_browser.is_ff_default { std::process::exit(2); }
+        if report.installs.is_empty() {
+            std::process::exit(1);
+        }
+        if !report.default_browser.is_ff_default {
+            std::process::exit(2);
+        }
     }
     Ok(())
 }

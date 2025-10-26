@@ -16,8 +16,8 @@ pub struct DefaultBrowser {
 
 #[derive(Serialize)]
 pub struct Install {
-    pub channel: String,   // release/beta/esr/nightly/unknown
+    pub channel: String, // release/beta/esr/nightly/unknown
     pub version: String,
     pub path: String,
-    pub source: String,    // registry/plist/desktop/pkgmgr
+    pub source: String, // registry/plist/desktop/pkgmgr
 }
